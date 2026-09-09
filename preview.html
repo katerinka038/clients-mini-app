@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Клиенты — превью дизайна</title>
+    <!--
+      Статичная страница только для просмотра оформления.
+      Подключает те же стили, что и приложение, поэтому не расходится с ним.
+      Само приложение запускается через `npm run dev`.
+    -->
+    <link rel="stylesheet" href="./src/styles/tokens.css" />
+    <link rel="stylesheet" href="./src/styles/global.css" />
+    <link rel="stylesheet" href="./src/styles/components.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="screen">
+        <header class="head">
+          <h1 class="head__title">Клиенты</h1>
+          <button class="icon-round" aria-label="Добавить клиента">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="search">
+          <span class="search__icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.9" />
+              <path d="m16 16 4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+            </svg>
+          </span>
+          <input class="search__input" placeholder="Поиск по названию, нише, городу" />
+        </div>
+
+        <div class="chips">
+          <button class="chip chip--on">Все <span class="chip__count">28</span></button>
+          <button class="chip">Не писала <span class="chip__count">9</span></button>
+          <button class="chip">Написала <span class="chip__count">6</span></button>
+          <button class="chip">Ответил <span class="chip__count">4</span></button>
+          <button class="chip">Отказ <span class="chip__count">2</span></button>
+        </div>
+
+        <div style="margin-top: var(--gap-l)">
+          <!-- карточка 1 -->
+          <div class="card">
+            <div class="card__avatar" style="background: var(--avatar-1)">Б</div>
+            <div class="card__body">
+              <div class="card__name">Буревестник</div>
+              <div class="card__meta">База отдыха · Ростов-на-Дону</div>
+              <div class="card__tags">
+                <div class="tags-row">
+                  <span class="tag tag--danger">Сайта нет</span>
+                  <span class="tag tag--neutral">Не писала</span>
+                </div>
+              </div>
+              <div class="card__note">Хорошие соцсети, бронирование только через сообщения.</div>
+            </div>
+            <button class="star" aria-label="В избранное">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path
+                  d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"
+                  fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- карточка 2, избранная -->
+          <div class="card">
+            <div class="card__avatar" style="background: var(--avatar-3)">М</div>
+            <div class="card__body">
+              <div class="card__name">Мята</div>
+              <div class="card__meta">Салон красоты · Обнинск</div>
+              <div class="card__tags">
+                <div class="tags-row">
+                  <span class="tag tag--positive">Есть сайт</span>
+                  <span class="tag tag--accent">Написала</span>
+                </div>
+              </div>
+              <div class="card__note">Интересовалась отдельным лендингом.</div>
+            </div>
+            <button class="star star--on" aria-label="Убрать из избранного">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path
+                  d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"
+                  fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- карточка 3 -->
+          <div class="card">
+            <div class="card__avatar" style="background: var(--avatar-4)">C</div>
+            <div class="card__body">
+              <div class="card__name">Coffee Point</div>
+              <div class="card__meta">Кофейня · Обнинск</div>
+              <div class="card__tags">
+                <div class="tags-row">
+                  <span class="tag tag--danger">Сайта нет</span>
+                  <span class="tag tag--neutral">Не писала</span>
+                </div>
+              </div>
+              <div class="card__note">Активный аккаунт, можно предложить сайт с доставкой.</div>
+            </div>
+            <button class="star" aria-label="В избранное">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path
+                  d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"
+                  fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- карточка 4 -->
+          <div class="card">
+            <div class="card__avatar" style="background: var(--avatar-2)">Р</div>
+            <div class="card__body">
+              <div class="card__name">Радуга</div>
+              <div class="card__meta">Детский центр · Сочи</div>
+              <div class="card__tags">
+                <div class="tags-row">
+                  <span class="tag tag--positive">Есть сайт</span>
+                  <span class="tag tag--positive">Ответил</span>
+                </div>
+              </div>
+              <div class="card__note">Рассматривают мини-приложение для записи на занятия.</div>
+            </div>
+            <button class="star" aria-label="В избранное">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path
+                  d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"
+                  fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tabbar">
+        <button class="tab tab--on">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <circle cx="9" cy="8" r="3.4" stroke="currentColor" stroke-width="1.8" />
+            <path d="M3.5 19.5c.6-3 2.8-4.7 5.5-4.7s4.9 1.7 5.5 4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M16 6.2a3 3 0 0 1 0 5.9M17.2 14.9c2 .5 3.2 2 3.6 4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          Клиенты
+        </button>
+        <button class="tab-plus" aria-label="Добавить клиента">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+        </button>
+        <button class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 3.2.8 4.8 1.7 5.8.4.5.1 1.2-.6 1.2H5.4c-.7 0-1-.7-.6-1.2.9-1 1.7-2.6 1.7-5.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            <path d="M10 20a2.2 2.2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          Напоминания
+        </button>
+      </nav>
+    </div>
+  </body>
+</html>

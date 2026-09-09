@@ -1,0 +1,130 @@
+/* ============================================================
+   База: сброс, типографика, каркас экрана.
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+/* --- Каркас --- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.screen {
+  flex: 1;
+  padding: 8px var(--pad-screen) 0;
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Экраны без нижнего меню (форма, карточка клиента) */
+.screen--plain {
+  padding-bottom: calc(var(--safe-bottom) + 24px);
+}
+
+.screen--with-footer {
+  padding-bottom: calc(88px + var(--safe-bottom));
+}
+
+/* --- Шапка экрана --- */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-m);
+  padding: 12px 0 16px;
+}
+
+.head__title {
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.head__sub {
+  color: var(--text-soft);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+/* --- Секция --- */
+
+.section {
+  margin-bottom: var(--gap-xl);
+}
+
+.section__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+  letter-spacing: 0.01em;
+  margin-bottom: var(--gap-s);
+}
+
+/* --- Утилиты --- */
+
+.muted {
+  color: var(--text-soft);
+}
+
+.stack-s > * + * {
+  margin-top: var(--gap-s);
+}
+.stack-m > * + * {
+  margin-top: var(--gap-m);
+}
+
+.center-note {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 14px;
+  padding: 40px 24px;
+}

@@ -1,0 +1,77 @@
+/* ============================================================
+   Дизайн-токены. «Тёплый greige».
+   Всё, что касается цвета, скруглений и отступов, меняется здесь.
+   ============================================================ */
+
+:root {
+  /* --- Поверхности --- */
+  --bg: #eae6df; /* мягкий серо-бежевый фон */
+  --bg-elevated: #e3ded6; /* фон под чипсами, полями поиска */
+  --card: #f4f1eb; /* карточка чуть светлее фона */
+  --card-hover: #efebe4;
+  --line: #dcd6cc; /* тонкая линия-разделитель */
+
+  /* --- Текст --- */
+  --text: #3a3733; /* тёмно-серый, тёплый; не чёрный */
+  --text-soft: #8b8177; /* второстепенный серо-коричневый */
+  --text-faint: #a49b91; /* подписи, плейсхолдеры */
+  --text-on-dark: #f6f3ee;
+
+  /* --- Акценты --- */
+  --accent: #5b7d9e; /* приглушённый синий */
+  --accent-pressed: #4e6c89;
+  --accent-soft-bg: #e0e8ef;
+  --accent-soft-text: #4a6a88;
+
+  --dark: #45413c; /* графит для основной кнопки */
+  --dark-pressed: #35322e;
+
+  /* --- Теговые тона --- */
+  --tag-neutral-bg: #e5e0d7;
+  --tag-neutral-text: #6f665d;
+
+  --tag-positive-bg: #dfe9dd; /* зелёный только для положительного */
+  --tag-positive-text: #4d6b4f;
+
+  --tag-soft-danger-bg: #f2e0e0; /* очень мягкий красный: «сайта нет» */
+  --tag-soft-danger-text: #96595a;
+
+  --star: #d7a93f; /* звёздочка избранного */
+
+  /* --- Геометрия --- */
+  --r-card: 20px;
+  --r-field: 16px;
+  --r-chip: 999px;
+  --r-small: 12px;
+
+  --gap-xs: 4px;
+  --gap-s: 8px;
+  --gap-m: 12px;
+  --gap-l: 16px;
+  --gap-xl: 24px;
+
+  --pad-screen: 16px;
+
+  /* --- Тени: минимум --- */
+  --shadow-card: 0 1px 2px rgba(70, 60, 48, 0.05);
+  --shadow-float: 0 6px 18px rgba(70, 60, 48, 0.14);
+
+  /* --- Размеры --- */
+  --tabbar-h: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* --- Шрифты --- */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Мягкие фоны для автоматических аватарок-монограмм.
+   Подбираются по названию клиента, отдельного действия не требуют. */
+:root {
+  --avatar-1: #e6e0d4;
+  --avatar-2: #dfe5e9;
+  --avatar-3: #e4e6da;
+  --avatar-4: #ece0da;
+  --avatar-5: #e2e0e8;
+  --avatar-6: #e9e3d3;
+}
