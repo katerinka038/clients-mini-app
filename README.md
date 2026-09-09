@@ -141,6 +141,15 @@ npm run build
 
 ---
 
+## Где приложение живёт
+
+- Репозиторий: <https://github.com/katerinka038/clients-mini-app>
+- Сайт: <https://katerinka038.github.io/clients-mini-app/>
+
+Публикация автоматическая: любой `git push` в ветку `main` запускает
+`.github/workflows/deploy.yml`, тот собирает проект и выкладывает его на GitHub Pages.
+Перетаскивать папки вручную не нужно.
+
 ## Как выложить и подключить к боту
 
 Telegram открывает Mini App только по `https`, поэтому нужен хостинг статики.
