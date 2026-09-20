@@ -1054,102 +1054,102 @@
   opacity: 0.72;
 }
 
-/* Воронка в строку: касания → открыли → ответили → созвоны → оплаты */
-.steps {
-  display: flex;
-  gap: var(--gap-s);
-  padding: 14px 0;
+/* Таблица воронки — как на слайде: строки-ниши, столбцы от касания
+   до оплаты. На узком экране листается вбок, первый столбец закреплён. */
+.ftable {
+  background: var(--card);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
 }
 
-.step {
-  flex: 1;
-  min-width: 0;
+.ftable__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ftable table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.ftable th,
+.ftable td {
+  padding: 8px 5px;
   text-align: center;
+  vertical-align: middle;
 }
 
-.step + .step {
-  border-left: 1px solid var(--line);
+.ftable th {
+  width: 58px;
+  padding-top: 14px;
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-faint);
+  vertical-align: bottom;
 }
 
-.step__value {
-  font-size: 20px;
+.ftable td b {
+  display: block;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.1;
   color: var(--text);
 }
 
-.step__label {
+.ftable td i {
+  display: block;
   margin-top: 2px;
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-.step__note {
-  margin-top: 2px;
-  font-size: 11px;
-  line-height: 1.3;
+  font-size: 10px;
+  font-style: normal;
   color: var(--text-soft);
 }
 
-.step--strong .step__value {
-  color: var(--tag-positive-text);
+.ftable tbody tr + tr td {
+  border-top: 1px solid var(--line);
 }
 
-.funnel-card {
-  padding: 14px 16px;
-  border-radius: var(--r-card);
+/* Название ниши или канала не уезжает при горизонтальной прокрутке */
+.ftable__name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 104px;
+  max-width: 132px;
+  padding-left: 14px;
   background: var(--card);
-  box-shadow: var(--shadow-card);
-}
-
-.funnel-card__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--gap-s);
-}
-
-.funnel-card__name {
-  overflow: hidden;
-  font-size: 15px;
+  border-right: 1px solid var(--line);
+  font-size: 12.5px;
   font-weight: 600;
+  text-align: left;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.funnel-card__touched {
-  flex: none;
-  font-size: 13px;
+.ftable thead .ftable__name {
+  font-size: 9.5px;
+  font-weight: 600;
   color: var(--text-faint);
 }
 
-.funnel-card__cells {
-  display: flex;
-  gap: var(--gap-s);
-  margin-top: 10px;
+.ftable__total td {
+  background: var(--bg-elevated);
 }
 
-.funnel-cell {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.ftable__total .ftable__name {
+  background: var(--bg-elevated);
 }
 
-.funnel-cell__value {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.funnel-cell__label {
-  font-size: 11px;
-  color: var(--text-faint);
+.ftable__total td b {
+  font-weight: 800;
 }
 
 /* Что чинить: мягкая подсказка под цифрами */
 .advice {
-  margin-top: 10px;
+  margin-top: var(--gap-m);
   padding: 10px 12px;
   border-radius: var(--r-small);
   font-size: 13px;

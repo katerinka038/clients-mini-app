@@ -4,15 +4,15 @@ import type { Client } from '../domain/client';
 import { copyToClipboard, downloadCsv, summaryFileName, summaryToCsv } from '../domain/export';
 import {
   DAILY_TARGET,
+  MIN_SAMPLE,
   adviceFor,
   formatMoney,
   formatRate,
-  plural,
-  TOUCH_FORMS,
   funnelByChannel,
   funnelByNiche,
   todayProgress,
   totalRow,
+  type Advice,
   type FunnelRow,
 } from '../domain/funnel';
 import { EmptyState } from '../components/EmptyState';
@@ -28,7 +28,7 @@ export function NumbersScreen() {
   const channels = useMemo(() => funnelByChannel(clients), [clients]);
   const today = useMemo(() => todayProgress(clients), [clients]);
 
-  const advice = adviceFor(total);
+  const advice = useMemo(() => mainAdvice(total, [...niches, ...channels]), [total, niches, channels]);
 
   return (
     <div className="screen">
@@ -49,55 +49,26 @@ export function NumbersScreen() {
         />
       ) : (
         <>
-          <Section label="Всего">
-            <div className="panel">
-              <Steps row={total} />
-              <div className={`advice advice--${advice.tone}`}>{advice.text}</div>
-            </div>
+          <Section label="По нишам">
+            <FunnelTable head="Ниша" rows={niches} total={total} />
+            <div className={`advice advice--${advice.tone}`}>{advice.text}</div>
+            {total.amount > 0 && (
+              <p className="hint-text">Заработано: {formatMoney(total.amount)}</p>
+            )}
           </Section>
-
-          {niches.length > 0 && (
-            <Section label="По нишам">
-              <div className="stack-m">
-                {niches.map((row) => (
-                  <FunnelCard key={row.key} row={row} />
-                ))}
-              </div>
-            </Section>
-          )}
 
           {channels.length > 0 && (
             <Section label="По каналам">
-              <div className="stack-m">
-                {channels.map((row) => (
-                  <FunnelCard key={row.key} row={row} />
-                ))}
-              </div>
+              <FunnelTable head="Канал" rows={channels} />
             </Section>
           )}
 
           <Section label="Ориентиры">
-            <div className="panel">
-              <div className="kv">
-                <span className="kv__key">Открыли</span>
-                <span className="kv__val">35–50% от касаний</span>
-              </div>
-              <div className="kv">
-                <span className="kv__key">Диалогов</span>
-                <span className="kv__val">10–20 на сотню сообщений</span>
-              </div>
-              <div className="kv">
-                <span className="kv__key">Созвонов</span>
-                <span className="kv__val">3–5 из этих диалогов</span>
-              </div>
-              <div className="kv">
-                <span className="kv__key">Оплат</span>
-                <span className="kv__val">1–2 на сотню</span>
-              </div>
-            </div>
+            <p className="hint-text" style={{ marginTop: 0 }}>
+              На сотню касаний: открыли 35–50 %, диалогов 10–20, созвонов 3–5, оплат 1–2.
+            </p>
             <p className="hint-text">
-              Меняем по&nbsp;одному: сначала канал, потом первые две строки, потом нишу. Иначе
-              непонятно, что сработало.
+              Чиним по&nbsp;одному: сначала канал, потом первые две строки, потом нишу.
             </p>
           </Section>
 
@@ -106,6 +77,25 @@ export function NumbersScreen() {
       )}
     </div>
   );
+}
+
+/**
+ * Одна подсказка на экран вместо плашки под каждой строкой: берём самый
+ * весомый затык, а если чинить нечего — общий вывод по всем касаниям.
+ */
+function mainAdvice(total: FunnelRow, rows: FunnelRow[]): Advice {
+  const problems = rows
+    .filter((row) => row.touched >= MIN_SAMPLE)
+    .map((row) => ({ row, advice: adviceFor(row) }))
+    .filter((item) => item.advice.tone === 'warn')
+    .sort((a, b) => b.row.touched - a.row.touched);
+
+  if (problems.length > 0) {
+    const { row, advice } = problems[0];
+    return { tone: advice.tone, text: `${row.label}: ${advice.text.toLowerCase()}` };
+  }
+
+  return adviceFor(total);
 }
 
 /** Норма дня: двадцать сообщений, плюс напоминания тем, кто молчит */
@@ -133,67 +123,72 @@ function DayBar({ touches, pings, left }: { touches: number; pings: number; left
   );
 }
 
-/** Воронка в строку: касания → открыли → ответили → созвоны → оплаты */
-function Steps({ row }: { row: FunnelRow }) {
+/**
+ * Таблица как на слайде: строки — ниши или каналы, столбцы — путь от касания
+ * до оплаты. На телефоне листается вбок, первый столбец остаётся на месте.
+ */
+function FunnelTable({ head, rows, total }: { head: string; rows: FunnelRow[]; total?: FunnelRow }) {
   return (
-    <div className="steps">
-      <Step value={row.touched} label="касаний" />
-      <Step value={row.opened} label="открыли" note={formatRate(row.openRate)} />
-      <Step value={row.answered} label="ответили" note={formatRate(row.answerRate)} />
-      <Step value={row.callsDone} label="созвонов" note={row.callsSet > row.callsDone ? `+${row.callsSet - row.callsDone} назначено` : undefined} />
-      <Step value={row.won} label="оплат" note={row.amount > 0 ? formatMoney(row.amount) : undefined} strong />
-    </div>
-  );
-}
-
-function Step({
-  value,
-  label,
-  note,
-  strong,
-}: {
-  value: number;
-  label: string;
-  note?: string;
-  strong?: boolean;
-}) {
-  return (
-    <div className={`step${strong ? ' step--strong' : ''}`}>
-      <div className="step__value">{value}</div>
-      <div className="step__label">{label}</div>
-      {note && <div className="step__note">{note}</div>}
-    </div>
-  );
-}
-
-function FunnelCard({ row }: { row: FunnelRow }) {
-  const advice = adviceFor(row);
-
-  return (
-    <div className="funnel-card">
-      <div className="funnel-card__head">
-        <span className="funnel-card__name">{row.label}</span>
-        <span className="funnel-card__touched">{row.touched} {plural(row.touched, TOUCH_FORMS)}</span>
+    <div className="ftable">
+      <div className="ftable__scroll">
+        <table>
+          <thead>
+            <tr>
+              <th className="ftable__name">{head}</th>
+              <th>Касаний</th>
+              <th>Открыли</th>
+              <th>Промолчали</th>
+              <th>Ответили «да»</th>
+              <th>Ответили «нет»</th>
+              <th>Позвали</th>
+              <th>Провели</th>
+              <th>Продаж</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <Row key={row.key} row={row} />
+            ))}
+            {total && <Row row={total} strong />}
+          </tbody>
+        </table>
       </div>
-
-      <div className="funnel-card__cells">
-        <Cell value={formatRate(row.openRate)} label="открыли" />
-        <Cell value={String(row.answered)} label="ответили" />
-        <Cell value={String(row.callsDone)} label="созвонов" />
-        <Cell value={String(row.won)} label="оплат" />
-      </div>
-
-      <div className={`advice advice--${advice.tone}`}>{advice.text}</div>
     </div>
   );
 }
 
-function Cell({ value, label }: { value: string; label: string }) {
+function Row({ row, strong }: { row: FunnelRow; strong?: boolean }) {
   return (
-    <div className="funnel-cell">
-      <span className="funnel-cell__value">{value}</span>
-      <span className="funnel-cell__label">{label}</span>
-    </div>
+    <tr className={strong ? 'ftable__total' : undefined}>
+      <td className="ftable__name">{row.label}</td>
+      <td>
+        <b>{row.touched}</b>
+      </td>
+      <td>
+        <b>{row.opened}</b>
+        <i>{formatRate(row.openRate)}</i>
+      </td>
+      <td>
+        <b>{row.silent}</b>
+      </td>
+      <td>
+        <b>{row.answered}</b>
+        <i>{formatRate(row.answerRate)}</i>
+      </td>
+      <td>
+        <b>{row.declined}</b>
+      </td>
+      <td>
+        <b>{row.callsSet}</b>
+      </td>
+      <td>
+        <b>{row.callsDone}</b>
+      </td>
+      <td>
+        <b>{row.won}</b>
+        <i>{formatRate(row.winRate)}</i>
+      </td>
+    </tr>
   );
 }
 

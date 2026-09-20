@@ -73,10 +73,14 @@ export interface FunnelRow {
   callsDone: number;
   won: number;
   amount: number;
+  /** открыли, но не ответили ни «да», ни «нет» */
+  silent: number;
   /** доля открывших от касаний, 0…1 */
   openRate: number;
   /** доля ответивших от касаний, 0…1 */
   answerRate: number;
+  /** доля оплат от касаний, 0…1 */
+  winRate: number;
 }
 
 function emptyRow(key: string, label: string): FunnelRow {
@@ -91,8 +95,10 @@ function emptyRow(key: string, label: string): FunnelRow {
     callsDone: 0,
     won: 0,
     amount: 0,
+    silent: 0,
     openRate: 0,
     answerRate: 0,
+    winRate: 0,
   };
 }
 
@@ -113,8 +119,11 @@ function addTo(row: FunnelRow, client: Client): void {
 function withRates(row: FunnelRow): FunnelRow {
   return {
     ...row,
+    // столбец из таблицы Димы: прочитал и не сказал ни «да», ни «нет»
+    silent: Math.max(0, row.opened - row.answered - row.declined),
     openRate: row.touched > 0 ? row.opened / row.touched : 0,
     answerRate: row.touched > 0 ? row.answered / row.touched : 0,
+    winRate: row.touched > 0 ? row.won / row.touched : 0,
   };
 }
 

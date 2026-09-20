@@ -5,7 +5,8 @@ import { BellIcon, ChartIcon, PeopleIcon, PlusIcon } from './icons';
 /**
  * Три вкладки в ряд плюс круглая кнопка добавления. Кнопка вынесена
  * из строки и висит над меню справа: после появления «Цифр» четвёртый
- * элемент в строку уже не помещался.
+ * элемент в строку уже не помещался. На самих «Цифрах» кнопку прячем —
+ * там нечего добавлять, а таблицу она перекрывает.
  */
 export function TabBar() {
   const tab = useNav((s) => s.tab);
@@ -52,17 +53,19 @@ export function TabBar() {
         </button>
       </nav>
 
-      <button
-        type="button"
-        className="tab-plus"
-        aria-label="Добавить клиента"
-        onClick={() => {
-          haptic('tap');
-          push({ name: 'form' });
-        }}
-      >
-        <PlusIcon size={24} />
-      </button>
+      {tab !== 'numbers' && (
+        <button
+          type="button"
+          className="tab-plus"
+          aria-label="Добавить клиента"
+          onClick={() => {
+            haptic('tap');
+            push({ name: 'form' });
+          }}
+        >
+          <PlusIcon size={24} />
+        </button>
+      )}
     </>
   );
 }
