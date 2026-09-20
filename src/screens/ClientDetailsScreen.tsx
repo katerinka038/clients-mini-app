@@ -1,9 +1,17 @@
 import { confirmDialog, haptic } from '../app/telegram';
-import { formatDate, formatReminder } from '../domain/dates';
-import { findContactType, findService, findSite, STATUSES } from '../domain/dictionaries';
+import { formatDate, formatReminder, todayISO } from '../domain/dates';
+import {
+  findChannel,
+  findContactType,
+  findService,
+  findSite,
+  findSource,
+  STATUSES,
+} from '../domain/dictionaries';
+import { formatMoney } from '../domain/funnel';
 import { Avatar } from '../components/Avatar';
 import { ChipGroup } from '../components/Chips';
-import { Section } from '../components/Fields';
+import { Section, Toggle } from '../components/Fields';
 import { StarButton } from '../components/StarButton';
 import { Tag, TagsRow } from '../components/Tag';
 import { useClients } from '../store/clientsStore';
@@ -39,6 +47,9 @@ export function ClientDetailsScreen({ id }: ClientDetailsScreenProps) {
 
   const site = findSite(client.site);
   const meta = [client.niche, client.city].filter(Boolean).join(' · ');
+  const person = [client.decisionMaker, client.role].filter(Boolean).join(' · ');
+  const today = todayISO();
+  const pingedToday = client.pings.includes(today);
 
   const askDelete = async () => {
     const ok = await confirmDialog(`Удалить «${client.name}»? Отменить это будет нельзя.`);
@@ -48,6 +59,15 @@ export function ClientDetailsScreen({ id }: ClientDetailsScreenProps) {
     back();
   };
 
+  const togglePingToday = () => {
+    haptic('tap');
+    void patch(client.id, {
+      pings: pingedToday
+        ? client.pings.filter((p) => p !== today)
+        : [...client.pings, today].sort(),
+    });
+  };
+
   return (
     <div className="screen screen--plain">
       <div className="details__top">
@@ -55,6 +75,7 @@ export function ClientDetailsScreen({ id }: ClientDetailsScreenProps) {
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1 className="details__name">{client.name}</h1>
           {meta && <div className="details__meta">{meta}</div>}
+          {person && <div className="details__meta">{person}</div>}
         </div>
         <StarButton inline size={24} active={client.favorite} onToggle={() => toggleFavorite(client.id)} />
       </div>
@@ -66,6 +87,63 @@ export function ClientDetailsScreen({ id }: ClientDetailsScreenProps) {
           value={client.status}
           onSelect={(status) => void patch(client.id, { status })}
         />
+      </Section>
+
+      {client.hook && (
+        <Section label="Зацепка">
+          <div className="note-block">{client.hook}</div>
+        </Section>
+      )}
+
+      <Section label="Как идём">
+        <div className="panel">
+          <div className="kv">
+            <span className="kv__key">Первое сообщение</span>
+            <span className="kv__val">
+              {client.firstTouchAt ? reminderLabel(client.firstTouchAt) : 'ещё не писала'}
+            </span>
+          </div>
+          <div className="kv">
+            <span className="kv__key">Канал</span>
+            <span className="kv__val">
+              {client.channel ? findChannel(client.channel).label : '—'}
+            </span>
+          </div>
+          <div className="kv">
+            <span className="kv__key">Где нашла</span>
+            <span className="kv__val">
+              {client.source ? findSource(client.source).label : '—'}
+            </span>
+          </div>
+          <div className="kv">
+            <span className="kv__key">Напоминаний</span>
+            <span className="kv__val">
+              {client.pings.length > 0
+                ? `${client.pings.length}, последнее ${formatReminder(client.pings[client.pings.length - 1])}`
+                : 'пока не напоминала'}
+            </span>
+          </div>
+          {client.amount > 0 && (
+            <div className="kv">
+              <span className="kv__key">Сумма</span>
+              <span className="kv__val">{formatMoney(client.amount)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="stack-s" style={{ marginTop: 'var(--gap-m)' }}>
+          <Toggle
+            label="Прочитал сообщение"
+            checked={client.opened}
+            onChange={(opened) => void patch(client.id, { opened })}
+          />
+          <Toggle
+            label="Напомнила о себе сегодня"
+            hint="Смайлик, кружок или полезное сообщение"
+            checked={pingedToday}
+            onChange={togglePingToday}
+          />
+        </div>
       </Section>
 
       <Section label="Сайт">

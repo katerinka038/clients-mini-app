@@ -5,10 +5,11 @@
 
 import { create } from 'zustand';
 
-export type Tab = 'clients' | 'reminders';
+export type Tab = 'clients' | 'numbers' | 'reminders';
 
 export type Screen =
   | { name: 'clients' }
+  | { name: 'numbers' }
   | { name: 'reminders' }
   | { name: 'details'; id: string }
   | { name: 'form'; id?: string };

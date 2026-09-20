@@ -2,14 +2,19 @@
  * Модель клиента.
  *
  * Правила расширения на будущее:
- *  - статусы, услуги и типы контактов — это строковые id из словарей
+ *  - статусы, услуги, каналы и типы контактов — это строковые id из словарей
  *    (см. dictionaries.ts). Добавить новый — значит дописать строку в словарь,
  *    старые записи при этом не ломаются;
  *  - неизвестные поля из старых/новых версий не теряются: они лежат в `extra`;
  *  - у каждой записи есть номер схемы `v`, по нему работает миграция.
+ *
+ * Версия 2 добавила поля для учёта касаний: канал, источник, кто принимает
+ * решение, зацепка, дата первого сообщения, отметка «открыл», пинги и сумма.
+ * Карточки версии 1 читаются как есть — недостающие поля получают пустые
+ * значения и ничего не ломают.
  */
 
-export const CLIENT_SCHEMA_VERSION = 1;
+export const CLIENT_SCHEMA_VERSION = 2;
 
 /** Есть ли у клиента сайт */
 export type SiteState = 'yes' | 'no' | 'unknown';
@@ -19,6 +24,12 @@ export type StatusId = string;
 
 /** id из словаря услуг, например 'landing' */
 export type ServiceId = string;
+
+/** id из словаря каналов, например 'whatsapp' */
+export type ChannelId = string;
+
+/** id из словаря источников, например 'yandex_maps' */
+export type SourceId = string;
 
 /** id из словаря типов контактов, например 'telegram' */
 export type ContactTypeId = string;
@@ -47,6 +58,25 @@ export interface Client {
   status: StatusId;
   note: string;
 
+  /** куда писали: telegram, whatsapp и так далее */
+  channel: ChannelId;
+  /** где нашли человека */
+  source: SourceId;
+  /** кто принимает решение */
+  decisionMaker: string;
+  /** его должность */
+  role: string;
+  /** зацепка: что у них не так и с чем можно зайти */
+  hook: string;
+  /** дата первого сообщения, формат YYYY-MM-DD */
+  firstTouchAt: string | null;
+  /** сообщение прочитано */
+  opened: boolean;
+  /** даты напоминаний о себе, формат YYYY-MM-DD */
+  pings: string[];
+  /** сумма сделки в рублях */
+  amount: number;
+
   /** дата «вернуться к клиенту», формат YYYY-MM-DD */
   remindAt: string | null;
 
@@ -70,12 +100,23 @@ const KNOWN_FIELDS = new Set([
   'services',
   'status',
   'note',
+  'channel',
+  'source',
+  'decisionMaker',
+  'role',
+  'hook',
+  'firstTouchAt',
+  'opened',
+  'pings',
+  'amount',
   'remindAt',
   'favorite',
   'createdAt',
   'updatedAt',
   'extra',
 ]);
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** id, безопасный для ключей Telegram CloudStorage: только буквы, цифры и «_» */
 export function makeId(prefix = 'c'): string {
@@ -98,6 +139,15 @@ export function createClient(patch: Partial<Client> = {}): Client {
     services: [],
     status: 'not_written',
     note: '',
+    channel: '',
+    source: '',
+    decisionMaker: '',
+    role: '',
+    hook: '',
+    firstTouchAt: null,
+    opened: false,
+    pings: [],
+    amount: 0,
     remindAt: null,
     favorite: false,
     createdAt: now,
@@ -113,6 +163,11 @@ function str(value: unknown, fallback = ''): string {
 
 function num(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function isoDate(value: unknown): string | null {
+  const text = str(value);
+  return ISO_DATE.test(text) ? text : null;
 }
 
 function normalizeContacts(raw: unknown): Contact[] {
@@ -132,6 +187,13 @@ function normalizeContacts(raw: unknown): Contact[] {
     });
   }
   return result;
+}
+
+/** Даты пингов: только корректные, без повторов, по возрастанию */
+function normalizePings(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const dates = raw.filter((d): d is string => typeof d === 'string' && ISO_DATE.test(d));
+  return [...new Set(dates)].sort();
 }
 
 /**
@@ -164,10 +226,21 @@ export function normalizeClient(raw: unknown): Client | null {
     city: str(r.city).trim(),
     site: site === 'yes' || site === 'no' ? site : 'unknown',
     contacts: normalizeContacts(r.contacts),
-    services: Array.isArray(r.services) ? r.services.filter((s): s is string => typeof s === 'string') : [],
+    services: Array.isArray(r.services)
+      ? r.services.filter((s): s is string => typeof s === 'string')
+      : [],
     status: str(r.status, 'not_written') || 'not_written',
     note: str(r.note),
-    remindAt: /^\d{4}-\d{2}-\d{2}$/.test(str(r.remindAt)) ? str(r.remindAt) : null,
+    channel: str(r.channel).trim(),
+    source: str(r.source).trim(),
+    decisionMaker: str(r.decisionMaker).trim(),
+    role: str(r.role).trim(),
+    hook: str(r.hook).trim(),
+    firstTouchAt: isoDate(r.firstTouchAt),
+    opened: r.opened === true,
+    pings: normalizePings(r.pings),
+    amount: Math.max(0, Math.round(num(r.amount, 0))),
+    remindAt: isoDate(r.remindAt),
     favorite: r.favorite === true,
     createdAt: num(r.createdAt, now),
     updatedAt: num(r.updatedAt, num(r.createdAt, now)),
@@ -188,6 +261,15 @@ export function draftFromClient(client: Client): ClientDraft {
     services: [...client.services],
     status: client.status,
     note: client.note,
+    channel: client.channel,
+    source: client.source,
+    decisionMaker: client.decisionMaker,
+    role: client.role,
+    hook: client.hook,
+    firstTouchAt: client.firstTouchAt,
+    opened: client.opened,
+    pings: [...client.pings],
+    amount: client.amount,
     remindAt: client.remindAt,
     favorite: client.favorite,
   };

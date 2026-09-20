@@ -4,6 +4,7 @@ import { TabBar } from './components/TabBar';
 import { ClientDetailsScreen } from './screens/ClientDetailsScreen';
 import { ClientFormScreen } from './screens/ClientFormScreen';
 import { ClientsScreen } from './screens/ClientsScreen';
+import { NumbersScreen } from './screens/NumbersScreen';
 import { RemindersScreen } from './screens/RemindersScreen';
 import { useClients } from './store/clientsStore';
 import { useNav } from './store/navStore';
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <div className="app">
       {screen.name === 'clients' && <ClientsScreen />}
+      {screen.name === 'numbers' && <NumbersScreen />}
       {screen.name === 'reminders' && <RemindersScreen />}
       {screen.name === 'details' && <ClientDetailsScreen id={screen.id} />}
       {screen.name === 'form' && <ClientFormScreen key={screen.id ?? 'new'} id={screen.id} />}

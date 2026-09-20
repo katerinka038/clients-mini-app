@@ -72,6 +72,34 @@ export function Segmented<T extends string>({ options, value, onChange }: Segmen
   );
 }
 
+interface ToggleProps {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+/** Переключатель во всю строку: удобно попадать большим пальцем */
+export function Toggle({ label, hint, checked, onChange }: ToggleProps) {
+  return (
+    <button
+      type="button"
+      className={`toggle${checked ? ' toggle--on' : ''}`}
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="toggle__text">
+        <span className="toggle__label">{label}</span>
+        {hint && <span className="toggle__hint">{hint}</span>}
+      </span>
+      <span className="toggle__box" aria-hidden="true">
+        ✓
+      </span>
+    </button>
+  );
+}
+
 export function Section({ label, children }: { label?: string; children: ReactNode }) {
   return (
     <div className="section">

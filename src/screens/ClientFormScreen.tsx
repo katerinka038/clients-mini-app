@@ -7,12 +7,21 @@ import {
   type ClientDraft,
   type SiteState,
 } from '../domain/client';
-import { shiftedISO } from '../domain/dates';
-import { SERVICES, SITE_STATES, STATUSES } from '../domain/dictionaries';
+import { shiftedISO, todayISO } from '../domain/dates';
+import {
+  CHANNELS,
+  OPENED_STATUSES,
+  SERVICES,
+  SITE_STATES,
+  SOURCES,
+  STATUSES,
+  findStatus,
+} from '../domain/dictionaries';
+import { CALL_SET_STATUSES } from '../domain/dictionaries';
 import { AvatarPicker } from '../components/AvatarPicker';
 import { ChipGroup } from '../components/Chips';
 import { ContactsEditor } from '../components/ContactsEditor';
-import { Field, Section, Segmented, TextArea, TextField } from '../components/Fields';
+import { Field, Section, Segmented, TextArea, TextField, Toggle } from '../components/Fields';
 import { useClients } from '../store/clientsStore';
 import { useNav } from '../store/navStore';
 
@@ -83,6 +92,31 @@ export function ClientFormScreen({ id }: ClientFormScreenProps) {
     });
   };
 
+  /**
+   * Статус тянет за собой даты: как только сообщение ушло, проставляем дату
+   * первого касания, а ответ означает, что человек сообщение точно прочитал.
+   * Иначе эти две галочки пришлось бы ставить руками каждый раз.
+   */
+  const setStatus = (status: string) => {
+    const changes: Partial<ClientDraft> = { status };
+    if (status !== 'not_written' && !draft.firstTouchAt) changes.firstTouchAt = todayISO();
+    if (OPENED_STATUSES.includes(status)) changes.opened = true;
+    patch(changes);
+  };
+
+  const pingedToday = draft.pings.includes(todayISO());
+
+  const togglePingToday = () => {
+    const today = todayISO();
+    patch({
+      pings: pingedToday
+        ? draft.pings.filter((p) => p !== today)
+        : [...draft.pings, today].sort(),
+    });
+  };
+
+  const showAmount = CALL_SET_STATUSES.includes(draft.status);
+
   // предупреждаем при уходе с незаконченной формой
   useEffect(() => {
     setClosingConfirmation(dirty);
@@ -119,6 +153,9 @@ export function ClientFormScreen({ id }: ClientFormScreenProps) {
       name,
       niche: draft.niche.trim(),
       city: draft.city.trim(),
+      decisionMaker: draft.decisionMaker.trim(),
+      role: draft.role.trim(),
+      hook: draft.hook.trim(),
       note: draft.note.slice(0, NOTE_LIMIT),
       contacts: draft.contacts
         .map((c) => ({ ...c, value: c.value.trim(), label: c.label?.trim() || undefined }))
@@ -223,12 +260,41 @@ export function ClientFormScreen({ id }: ClientFormScreenProps) {
           </div>
         </Section>
 
+        <Section label="Кто решает">
+          <div className="stack-m">
+            <Field hint="Владелец или руководитель направления — тот, кто говорит «делаем»">
+              <TextField
+                value={draft.decisionMaker}
+                placeholder="Имя"
+                onChange={(event) => patch({ decisionMaker: event.target.value })}
+              />
+            </Field>
+            <Field>
+              <TextField
+                value={draft.role}
+                placeholder="Должность: владелец, управляющий, маркетолог"
+                onChange={(event) => patch({ role: event.target.value })}
+              />
+            </Field>
+          </div>
+        </Section>
+
         <Section label="Есть сайт?">
           <Segmented<SiteState>
             options={SITE_STATES.map((s) => ({ id: s.id, label: s.label }))}
             value={draft.site}
             onChange={(site) => patch({ site })}
           />
+        </Section>
+
+        <Section label="Зацепка">
+          <Field hint="Что у них не так — с этого и заходим в сообщении">
+            <TextField
+              value={draft.hook}
+              placeholder="Запись только по телефону; сайт из 2015-го"
+              onChange={(event) => patch({ hook: event.target.value })}
+            />
+          </Field>
         </Section>
 
         <Section label="Ещё контакты">
@@ -255,14 +321,88 @@ export function ClientFormScreen({ id }: ClientFormScreenProps) {
           />
         </Section>
 
-        <Section label="Статус">
+        <Section label="Где нашла">
           <ChipGroup
             wrap
-            options={STATUSES}
-            value={draft.status}
-            onSelect={(status) => patch({ status })}
+            options={SOURCES}
+            value={draft.source}
+            onSelect={(source) => patch({ source: draft.source === source ? '' : source })}
           />
         </Section>
+
+        <Section label="Куда пишу">
+          <ChipGroup
+            wrap
+            options={CHANNELS}
+            value={draft.channel}
+            onSelect={(channel) => patch({ channel: draft.channel === channel ? '' : channel })}
+          />
+        </Section>
+
+        <Section label="Статус">
+          <ChipGroup wrap options={STATUSES} value={draft.status} onSelect={setStatus} />
+          <div className="field__hint" style={{ marginTop: 'var(--gap-s)' }}>
+            {findStatus(draft.status).hint}
+          </div>
+        </Section>
+
+        <Section label="Касание">
+          <div className="stack-m">
+            <Field label="Первое сообщение">
+              <input
+                className="input"
+                type="date"
+                value={draft.firstTouchAt ?? ''}
+                onChange={(event) => patch({ firstTouchAt: event.target.value || null })}
+              />
+            </Field>
+
+            {!draft.firstTouchAt && (
+              <div className="chips chips--wrap">
+                <button
+                  type="button"
+                  className="chip"
+                  onClick={() => patch({ firstTouchAt: todayISO() })}
+                >
+                  Написала сегодня
+                </button>
+              </div>
+            )}
+
+            <Toggle
+              label="Прочитал сообщение"
+              hint="Две галочки в мессенджере — из этого считается открываемость"
+              checked={draft.opened}
+              onChange={(opened) => patch({ opened })}
+            />
+
+            <Toggle
+              label="Напомнила о себе сегодня"
+              hint={
+                draft.pings.length > 0
+                  ? `Всего напоминаний: ${draft.pings.length}`
+                  : 'Смайлик, кружок или полезное сообщение'
+              }
+              checked={pingedToday}
+              onChange={togglePingToday}
+            />
+          </div>
+        </Section>
+
+        {showAmount && (
+          <Section label="Сумма сделки">
+            <Field hint="Сколько получилось или сколько ждём">
+              <TextField
+                inputMode="numeric"
+                value={draft.amount ? String(draft.amount) : ''}
+                placeholder="45000"
+                onChange={(event) =>
+                  patch({ amount: Number(event.target.value.replace(/\D+/g, '')) || 0 })
+                }
+              />
+            </Field>
+          </Section>
+        )}
 
         <Section label="Заметка">
           <TextArea
@@ -289,6 +429,9 @@ export function ClientFormScreen({ id }: ClientFormScreenProps) {
             </button>
             <button type="button" className="chip" onClick={() => patch({ remindAt: shiftedISO(7) })}>
               Через неделю
+            </button>
+            <button type="button" className="chip" onClick={() => patch({ remindAt: shiftedISO(30) })}>
+              Через месяц
             </button>
             {draft.remindAt && (
               <button type="button" className="chip" onClick={() => patch({ remindAt: null })}>

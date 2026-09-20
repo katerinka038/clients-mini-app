@@ -86,3 +86,11 @@ export function BellIcon({ size = 22 }: IconProps) {
     </svg>
   );
 }
+
+export function ChartIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 20V10M10 20V5M16 20v-7M22 20H2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
