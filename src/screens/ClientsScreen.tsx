@@ -113,9 +113,11 @@ export function ClientsScreen() {
         {clients.length === 0 && loaded && (
           <EmptyState
             title="Пока пусто"
-            text="Добавь первого клиента — хватит одного названия, остальное можно дописать потом."
+            text="Добавь первого клиента — хватит одного названия, остальное можно дописать потом. Готовый список можно загрузить сразу пачкой."
             actionLabel="Добавить клиента"
             onAction={openForm}
+            secondaryLabel="Загрузить список"
+            onSecondary={() => push({ name: 'import' })}
           />
         )}
 
@@ -132,6 +134,7 @@ export function ClientsScreen() {
 /** Резервная копия: таблица со всеми клиентами файлом или текстом */
 function BackupBlock({ clients }: { clients: Client[] }) {
   const [done, setDone] = useState<string | null>(null);
+  const push = useNav((s) => s.push);
 
   const say = (message: string) => {
     setDone(message);
@@ -143,6 +146,7 @@ function BackupBlock({ clients }: { clients: Client[] }) {
     <div className="backup">
       <p className="backup__text">
         Копия списка на&nbsp;всякий случай — таблица для&nbsp;Excel. Фото в&nbsp;неё не&nbsp;входят.
+        Готовый список можно и&nbsp;загрузить обратно.
       </p>
 
       <div className="backup__buttons">
@@ -167,6 +171,9 @@ function BackupBlock({ clients }: { clients: Client[] }) {
           }}
         >
           Скопировать
+        </button>
+        <button type="button" className="backup__btn" onClick={() => push({ name: 'import' })}>
+          Загрузить
         </button>
       </div>
 

@@ -12,7 +12,8 @@ export type Screen =
   | { name: 'numbers' }
   | { name: 'reminders' }
   | { name: 'details'; id: string }
-  | { name: 'form'; id?: string };
+  | { name: 'form'; id?: string }
+  | { name: 'import' };
 
 /**
  * Защита от потери данных: экран может попросить подтверждение перед

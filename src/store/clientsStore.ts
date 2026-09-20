@@ -4,7 +4,14 @@
  */
 
 import { create } from 'zustand';
-import { CLIENT_SCHEMA_VERSION, createClient, type Client, type ClientDraft } from '../domain/client';
+import {
+  CLIENT_SCHEMA_VERSION,
+  createClient,
+  type Client,
+  type ClientDraft,
+  type Contact,
+} from '../domain/client';
+import type { ParsedRow } from '../domain/import';
 import { forgetFromCache, sortClients } from '../domain/search';
 import { deleteClient, loadAll, readCache, saveClient, writeCache } from '../storage/clientsRepo';
 import {
@@ -32,6 +39,10 @@ interface ClientsState {
   update: (id: string, draft: ClientDraft) => Promise<void>;
   patch: (id: string, changes: Partial<Client>) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  importRows: (
+    rows: ParsedRow[],
+    onProgress?: (done: number) => void,
+  ) => Promise<{ added: number; updated: number }>;
   toggleFavorite: (id: string) => Promise<void>;
   setPhoto: (id: string, dataUrl: string) => Promise<void>;
   clearPhoto: (id: string) => Promise<void>;
@@ -39,6 +50,19 @@ interface ClientsState {
   setQuery: (query: string) => void;
   setStatusFilter: (status: string) => void;
   clearError: () => void;
+}
+
+/** Дописывает новые контакты к старым, не создавая одинаковых */
+function mergeContacts(current: Contact[], incoming?: Contact[]): Contact[] {
+  if (!incoming || incoming.length === 0) return current;
+  const seen = new Set(current.map((c) => c.value.trim().toLowerCase()));
+  const extra = incoming.filter((c) => {
+    const key = c.value.trim().toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return extra.length > 0 ? [...current, ...extra] : current;
 }
 
 function describeError(e: unknown): string {
@@ -111,6 +135,64 @@ export const useClients = create<ClientsState>()((set, get) => ({
       set({ clients: previous, error: describeError(e) });
       throw e;
     }
+  },
+
+  /**
+   * Вставка списком. Пишем в хранилище по одной записи, а состояние
+   * обновляем один раз в конце — иначе сотня карточек дёргает экран
+   * сотню раз. Если запись оборвалась, сохраняем то, что успели.
+   */
+  importRows: async (rows, onProgress) => {
+    const result = [...get().clients];
+    const indexById = new Map(result.map((c, i) => [c.id, i]));
+
+    let added = 0;
+    let updated = 0;
+    let done = 0;
+
+    const finish = () => {
+      const sorted = sortClients(result);
+      set({ clients: sorted });
+      writeCache(sorted);
+    };
+
+    for (const row of rows) {
+      const at = row.existingId !== undefined ? indexById.get(row.existingId) : undefined;
+      let client: Client;
+
+      if (at !== undefined) {
+        const target = result[at];
+        client = {
+          ...target,
+          ...row.patch,
+          name: row.name,
+          contacts: mergeContacts(target.contacts, row.patch.contacts),
+          updatedAt: Date.now(),
+        };
+        result[at] = client;
+        updated += 1;
+      } else {
+        client = createClient({ ...row.patch, name: row.name, v: CLIENT_SCHEMA_VERSION });
+        indexById.set(client.id, result.length);
+        result.push(client);
+        added += 1;
+      }
+
+      try {
+        await saveClient(client);
+      } catch (e) {
+        finish();
+        set({ error: describeError(e) });
+        throw e;
+      }
+
+      done += 1;
+      onProgress?.(done);
+    }
+
+    finish();
+    set({ error: null });
+    return { added, updated };
   },
 
   remove: async (id) => {

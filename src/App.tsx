@@ -4,6 +4,7 @@ import { TabBar } from './components/TabBar';
 import { ClientDetailsScreen } from './screens/ClientDetailsScreen';
 import { ClientFormScreen } from './screens/ClientFormScreen';
 import { ClientsScreen } from './screens/ClientsScreen';
+import { ImportScreen } from './screens/ImportScreen';
 import { NumbersScreen } from './screens/NumbersScreen';
 import { RemindersScreen } from './screens/RemindersScreen';
 import { useClients } from './store/clientsStore';
@@ -48,6 +49,7 @@ export default function App() {
       {screen.name === 'reminders' && <RemindersScreen />}
       {screen.name === 'details' && <ClientDetailsScreen id={screen.id} />}
       {screen.name === 'form' && <ClientFormScreen key={screen.id ?? 'new'} id={screen.id} />}
+      {screen.name === 'import' && <ImportScreen />}
 
       {stack.length === 0 && <TabBar />}
     </div>
